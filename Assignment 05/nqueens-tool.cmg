@@ -1,0 +1,184 @@
+Module NqueensTools
+
+ ====================================================
+                      export
+ ====================================================
+
+ %% Backtracking and variables
+ ------------------------------
+
+ %% To store the chess board you will need to use a
+ %% 2-dimensional array, a grid, whose members are first-class 
+ %% variables. A first-class variable is a kind of
+ %% object called a box.  If b is a box then @b is the current
+ %% value stored in box b, and statement
+ %% 
+ %%   {@b =! v}
+ %% 
+ %% stores value v into box b.  If box b holds
+ %% a value of type T then b itself has type !{T}.
+ %% 
+ %% We have seen that, for backtracking to work in a reasonable
+ %% way, the system needs to store a trail so that, when a change
+ %% to a variable is backtracked over, the change is automatically
+ %% undone.  Cinnameg has two kinds of variables: 
+ %%
+ %%   (1) nonshared boxes are trailed and changes to them
+ %%       are undone automatically; 
+ %%
+ %%   (2) shared boxes are not trailed, and changes to them
+ %%       are not undone on backtracking. 
+
+ %% Data structure
+ --------------------------
+
+ %% The following defines type ChessBoard, the type of a chess board.
+ %% 
+ %% An nxn chess board is represented as a two-dimensional array.
+ %% Each variable in the array is a nonshared box that holds a 
+ %% boolean value, with value true indicating the presence of a
+ %% queen, and false indicating the absence of a queen.
+ %%
+ %% If b is a ChessBoard then @b_i_j is the value
+ %% stored at row i, column j in b.  Statement
+ %%
+ %%   {@b_i_j =! v}
+ %%
+ %% Stores v at row i, column j of b.
+
+ Abbrev ChessBoard = Grid of Boolean.
+
+ %% Support functions
+ ---------------------------
+
+ %% The support functions build chessboards, install queens onto
+ %% the chessboard and check whether positions are under attack.
+
+ Import "collect/grid".
+
+ {
+
+   newChessBoard : Integer -> ChessBoard
+
+     %: newChessBoard(n) returns a new nxn chess board.
+     %: There are no queens on it initially.
+     ;
+
+   AddQueen : (ChessBoard, Integer, Integer) -> ()
+
+     %: AddQueen(b, i, j) %AddQueen
+     %: puts a queen at location (i, j) on board b.
+     ;
+
+   underAttack? : (ChessBoard, Integer, Integer) -> Boolean
+
+     %: underAttack?(b, i, j) returns true if position
+     %: (i, j) is currently under attack by a queen on 
+     %: board b.
+     ;
+    
+   PrintBoard : ChessBoard -> ()
+
+     %: PrintBoard(b) %PrintBoard prints chess
+     %: board b.  Here is a sample of what it prints.
+     %:   Q . . . .
+     %:   . . Q . .
+     %:   . . . . Q
+     %:   . Q . . .
+     %:   . . . Q .
+ }
+
+ ====================================================
+                  implementation
+ ====================================================
+
+ Import 
+   "collect/list";
+   "collect/string"
+ %Import
+
+ %% The tools use the naming conventions shown here.  For example,
+ %% every occurence of the name bx stands for a box that holds
+ %% a boolean value.
+
+ ========================================================
+ Assume 
+   brd   : ChessBoard;
+   rw    : Array of Boolean;  %% A row of the board
+   i,j,n : Integer
+ %Assume
+ ========================================================
+
+ ========================================================
+ %%                   newChessBoard
+ ========================================================
+
+ {newChessBoard(n) = brdArray | 
+   {/:nonshared:/ @brdArray_n_n all = false}
+ }
+
+ ========================================================
+ %%                   AddQueen
+ ========================================================
+
+ {AddQueen(brd, i, j). =
+   {@brd_i_j =! true}
+ }
+
+ ========================================================
+ %%                   PrintBoard
+ ========================================================
+
+ {PrintPos(b). =
+   If @b then
+     Display " Q".
+   else
+     Display " .".
+   %If
+ }
+ ========================================================
+ {PrintRow(rw). =
+   {n = length(rw)}
+   For j from [1, ..., n] do
+     PrintPos rw_j.
+   %For
+   Displayln.
+ }
+ ========================================================
+ {PrintBoard(brd). =
+   For rw from rows(brd) do
+     PrintRow rw.
+   %For
+ }
+
+ ========================================================
+ %%                   occupied?
+ ========================================================
+ %% occupied?(lst) returns true if list (lst) contains
+ %% a queen.  Lst might be a row, column or diagonal
+ %% of the chess board.
+ ========================================================
+
+ {occupied?(lst) = forSome (x from lst) (@x)}
+
+ ========================================================
+
+ ========================================================
+ %%                   underAttack?
+ ========================================================
+
+ ========================================================
+ {underAttack?(brd, i, j) = 
+  forSome (lst from lsts) (occupied?(lst)) |
+   {lsts =
+     [row i brd, 
+      column j brd, 
+      diagLtoR(i, j) brd, 
+      diagRtoL(i, j) brd]
+   }
+ }
+
+ ========================================================
+
+%Module
+

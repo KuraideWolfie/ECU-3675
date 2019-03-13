@@ -1,0 +1,42 @@
+%% Name: Matthew Morgan
+%% Date: 22 October 2018
+%% Tabs: 2
+
+Module nqueens
+  Import "nqueens-tool".
+  
+  Execute
+    %% Shared box that counts the solutions
+    { @count = 0 }
+    
+    %% Generate the board
+    Display "What size board should I use? > ".
+    { n = stringToInteger(readLine()) }
+    { board: ChessBoard = newChessBoard(n) }
+    
+    Try
+      For r from [1,...,n] do
+        { c = each [1,...,n] }
+        
+        %% Add a queen only if the position is not under attack
+        %% else backtrack due to failure
+        If not underAttack?(board, r, c) then
+          AddQueen(board, r, c).
+          
+          %% If this is the last row, a solution was found; backtrack
+          If r == n then
+            { @count =! @count + 1 }
+            
+            PrintBoard(board).
+            Displayln.
+            Ensure false.
+          .
+        else
+          Ensure false.
+        .
+      .
+    .
+    
+    Displayln "There were %(@count) solutions".
+  .
+%Module
