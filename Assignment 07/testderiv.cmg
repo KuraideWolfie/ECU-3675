@@ -1,0 +1,67 @@
+Module testderiv
+  Import "deriv".
+
+  ====================================================
+  %% Simplify tests
+  ====================================================
+
+  { ShowSimplify(e). =
+    Displayln "%(e) = %(simplify e)".
+  }
+
+  Execute
+    Writeln["Simplify tests\n----------"].
+    ShowSimplify constant(3) + constant(5).
+    ShowSimplify constant(3) - constant(3).
+    ShowSimplify constant(5) * constant(5).
+    ShowSimplify constant(5) ^ constant(3).
+    ShowSimplify (constant(5) + constant(10)) * constant(10).
+    Displayln("\nExpected output: x x x 0 0 x x x 1").
+    ShowSimplify xx + constant(0).
+    ShowSimplify constant(0) + xx.
+    ShowSimplify xx + constant(0).
+    ShowSimplify constant(0) * xx.
+    ShowSimplify xx * constant(0).
+    ShowSimplify constant(1) * xx.
+    ShowSimplify xx * constant(1).
+    ShowSimplify xx ^ constant(1).
+    ShowSimplify constant(1) ^ xx.
+    Writeln.
+  %Execute
+
+  ====================================================
+  %% Deriv tests
+  ====================================================
+
+  { ShowDeriv(e). =
+    Try
+      Displayln "(%(e))' = %(derivative(e))".
+    else
+      Displayln "(%(e))' = ? (ERROR)".
+    .
+  }
+
+  Execute
+    Writeln["Deriv tests\n----------"].
+    ShowDeriv(xx ^ constant(2)).
+    ShowDeriv(constant(2) + (constant(3) * xx)).
+    ShowDeriv(xx ^ (constant(2) * constant(5))).
+    ShowDeriv((xx ^ constant(2)) ^ (constant(3) + constant(4))).
+    ShowDeriv(
+      (
+        ((constant(10)*constant(20))+constant(40))
+        -
+        (xx+constant(3))
+      )
+      +
+      (constant(30)*constant(2))
+      -
+      (xx^constant(2))
+    ).
+    ShowDeriv(xx ^ constant(3)).
+    ShowDeriv(xx * xx * xx).
+    Displayln.
+    
+    ShowDeriv((xx ^ constant(2)) ^ (constant(3) + xx)).
+  %Execute
+%Module

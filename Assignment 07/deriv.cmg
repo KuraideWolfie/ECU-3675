@@ -1,0 +1,311 @@
+%% Name: Matthew Morgan
+%% Date: 20 November 2018
+%% Tabs: 2
+
+Module derivative
+  ==============================================================================
+  %% This package defines the type Expression, and these functions on them:
+  %%   + Taking the derivative of an expression
+  %%   + Simplifying an expression
+  %%
+  %% The simplification is rudimentary.
+  ==============================================================================
+
+  export
+    ============================================================================
+    %%      Expression
+    ============================================================================
+    %% The Expression type is defined in the body of the package so its
+    %% representation is hidden from view. Here, we only advertise it exists.
+    ============================================================================
+
+    %: An expression involves constants, an independent variable called xx, and
+    %: a collection of operations. Supported operations are:
+    %: 
+    %: xx             The independent variable
+    %: constant(c)    A constant expression having value c
+    %: a+b            The sum of two expressions
+    %: a-b            The substraction of expression b from expression a
+    %: a*b            The product of two expressions, a and b
+    %: a^b            The exponentiation of expression a by expression b
+
+    Type Expression interface
+      with ==, $
+    %Type
+
+    ============================================================================
+    %%                derivativeX
+    ============================================================================
+
+    Exception derivativeX(Expression) 
+      "Unable to take the derivative of an expression"
+    %Exception
+
+    ============================================================================
+    %%      Functions
+    ============================================================================
+    %% Here are the exported functions for expressions. Only these are public.
+    ============================================================================
+
+    { constant : Real -> Expression
+        %: constant(r) is an expression that is the real number r.  For example,
+        %: constant(2.5) is the real number 2.5, as an expression.
+        ;
+        
+      xx : Expression
+        %: xx is the independent variable.
+        ;
+        
+      + : (Expression, Expression) -> Expression
+        %: a + b is the expression that is the sum of expressions a and b.
+        ;
+      
+      - : (Expression, Expression) -> Expression
+        %: a - b is the expression that is the substraction of expression b
+        %: from expression a
+        ;
+      
+      * : (Expression, Expression) -> Expression
+        %: a * b is the expression that is the product of expressions a and b.
+        ;
+      
+      ^ : (Expression, Expression) -> Expression
+        %: a ^ b is the expression that comprises expression a to the power of
+        %: expression b.
+        ;
+        
+      derivative : Expression -> Expression
+        %: deriv(e) is the derivative of e with respect to variable xx.
+        ;
+      
+      simplify : Expression -> Expression
+        %: simplify(e) is a (possibly) simplified form of expression e.
+    }
+    ============================================================================
+    
+  implementation
+    Import "math/complex".
+    
+    ============================================================================
+    %%       Type Expression
+    ============================================================================
+    %% Here, type Expression and its constructors and unconstructors are
+    %% defined. We don't want the default definition of $, and thus override it.
+    ============================================================================
+
+    Type Expression =
+      --------------------------------------------------------------------------
+      %% An expression can be a real constant.
+      | constant(Real)
+      --------------------------------------------------------------------------
+      %% An expression can be the independent variable xx.
+      | xx
+      --------------------------------------------------------------------------
+      %% An expression can be the sum of two expressions.
+      | Expression + Expression
+      --------------------------------------------------------------------------
+      %% An expression can be the substraction of two expressions.
+      | Expression - Expression
+      --------------------------------------------------------------------------
+      %% An expression can be the multiplication of two expressions.
+      | Expression * Expression
+      --------------------------------------------------------------------------
+      %% An expression can be one expression raised to another
+      | Expression ^ Expression
+      with ==
+    %Type
+
+    ============================================================================
+    %%      simplifySum
+    ============================================================================
+    %% simplifySum(e) is a (possibly) simplified form of expression e, which is
+    %% presumed to be a sum. The following simplifications are employed:
+    %%   1. 0 + a = a       2. a + 0 = a
+    %%   3. Constant computation: constant(m) + constant(n) = constant(m+n)
+    %%
+    %% simplifySum only looks at e to see if it is exactly one of these forms.
+    %% It doesn't look inside e for subexpressions that have these forms.
+    ============================================================================
+
+    {
+      --------------------------------------------------------------------------
+      %% constant arithmetic
+      case simplifySum(constant(m) + constant(n)) = constant(m+n)
+      --------------------------------------------------------------------------
+      %% 0 + a = a
+      case simplifySum(constant(0) + a)  = a
+      --------------------------------------------------------------------------
+      %% a + 0 = a
+      case simplifySum(a + constant(0))  = a
+      --------------------------------------------------------------------------
+      %% Otherwise, don't simplify.  Return a as is.
+      else simplifySum(a)  = a
+    }
+    
+    ============================================================================
+    %% simplifySub
+    ============================================================================
+    %% simplifySub(e) is a (possibly) simplified form of expression e, which is
+    %% presumed to involve subtraction. The following simplifications are done:
+    %%   1. a - 0 = a
+    %%   2. Constant computation: constant(m) - constant(n) = constant(m-n)
+    %%
+    %% It doesn't look inside e for subexpressions that have these forms.
+    ============================================================================
+    
+    {
+      --------------------------------------------------------------------------
+      %% constant arithmetic
+      case simplifySub(constant(m) - constant(n)) = constant(m-n)
+      --------------------------------------------------------------------------
+      %% a - 0 = a
+      case simplifySub(a - constant(0)) = a
+      --------------------------------------------------------------------------
+      %% Otherwise, don't simplify. Return a as is.
+      else simplifySub(a) = a
+    }
+    
+    ============================================================================
+    %% simplifyPro
+    ============================================================================
+    %% simplifyPro(e) is a (possibly) simplified form of expression e, which is
+    %% presumed to be multiplication. The following simplifications are done:
+    %%   1. 0 * a = 0       2. a * 0 = 0
+    %%   3. 1 * a = a       4. a * 1 = a
+    %%   5. Constant computation: constant(m) * constant(n) = constant(m*n)
+    %%
+    %% It doesn't look inside e for subexpressions that have these forms.
+    ============================================================================
+    
+    {
+      --------------------------------------------------------------------------
+      %% constant arithmetic
+      case simplifyPro(constant(m) * constant(n)) = constant(m*n)
+      --------------------------------------------------------------------------
+      %% 0 * a = 0
+      case simplifyPro(constant(0) * ?) = constant(0)
+      --------------------------------------------------------------------------
+      %% a * 0 = 0
+      case simplifyPro(? * constant(0)) = constant(0)
+      --------------------------------------------------------------------------
+      %% 1 * a = a
+      case simplifyPro(constant(1) * a) = a
+      --------------------------------------------------------------------------
+      %% a * 1 = a
+      case simplifyPro(a * constant(1)) = a
+      --------------------------------------------------------------------------
+      %% Otherwise, don't simplify. Return a as is.
+      else simplifyPro(a) = a
+    }
+    
+    ============================================================================
+    %% simplifyExp
+    ============================================================================
+    %% simplifyExp(e) is a possibly simplified form of expression e, which is
+    %% presumed to be exponentiation. The following simplifications are done:
+    %%   1. a ^ 1 = a         2. 1 ^ a = 1
+    %%   3. Constant computation: constant(m) ^ constant(n) = constant(m^n)
+    %%
+    %% It doesn't look inside e for subexpressions that have these forms
+    ============================================================================
+    
+    {
+      --------------------------------------------------------------------------
+      %% constant arithmetic
+      case simplifyExp(constant(m) ^ constant(n)) = constant(m^*n)
+      --------------------------------------------------------------------------
+      %% a ^ 1 = a
+      case simplifyExp(a ^ constant(1)) = a
+      --------------------------------------------------------------------------
+      %% 1 ^ a = 1
+      case simplifyExp(constant(1) ^ ?) = constant(1)
+      --------------------------------------------------------------------------
+      %% Otherwise, don't simplify. Return a as is.
+      else simplifyExp(a) = a
+    }
+
+    ============================================================================
+    %%      simplify
+    ============================================================================
+    %% simplify does a full simplification, going into the structure of an
+    %% expression looking for subexpressions that can be simplified.
+    ============================================================================
+
+    { case simplify(constant(r)) = constant(r)
+      case simplify ~(xx)        = xx
+      case simplify(a + b)       = simplifySum(simplify(a) + simplify(b))
+      case simplify(a - b)       = simplifySub(simplify(a) - simplify(b))
+      case simplify(a * b)       = simplifyPro(simplify(a) * simplify(b))
+      case simplify(a ^ b)       = simplifyExp(simplify(a) ^ simplify(b))
+    }
+
+    ============================================================================
+    %%      deriv
+    ============================================================================
+    %% deriv(e) is the derivative of expression e with respect to variable xx,
+    %% but it doesn't do any simplifications. It employes the rules for
+    %% derivatives directly.
+    ============================================================================
+    
+    { deriv: Expression -> Expression
+        %: deriv employs derivative rules directly
+        ;
+      derivExp: (Expression, Boolean) -> Expression
+        %: derivExp employes exponentiation rules, and is a helper for deriv
+    }
+
+    {    
+      --------------------------------------------------------------------------
+      %% c' = 0.
+      case deriv(constant(?)) = constant(0)
+      --------------------------------------------------------------------------
+      %% xx' = 1.
+      case deriv ~(xx) = constant(1)
+      --------------------------------------------------------------------------
+      %% (a+b)' = a' + b'.
+      case deriv(a + b) = deriv(a) + deriv(b)
+      --------------------------------------------------------------------------
+      %% (a-b)' = a' - b'.
+      case deriv(a - b) = deriv(a) - deriv(b)
+      --------------------------------------------------------------------------
+      %% (ab)' = a(b')+(a')b
+      case deriv(a * b) = (a * deriv(b)) + (deriv(a) * b)
+      --------------------------------------------------------------------------
+      %% Otherwise, attempt exponentiation rules
+      case deriv(e) = derivExp(e, false)
+    }
+    
+    { 
+      --------------------------------------------------------------------------
+      %% (a^c)' = c * a^(c-1) * a'
+      case derivExp(a ^ constant(m), ?) = constant(m)*(a^constant(m-1))*deriv(a)
+      --------------------------------------------------------------------------
+      %% (a^b)' = ? - attempt simplification of b
+      case derivExp(a ^ b, tog) = derivExp(a ^ simplify(b), true) when not tog
+      --------------------------------------------------------------------------
+      %% Otherwise, if simplification fails to make the expression computable,
+      %% fail
+      else derivExp(e, ?) = fail(derivativeX(e))
+    }
+
+    ============================================================================
+    %%      derivative
+    ============================================================================
+
+    { derivative(a) = simplify(deriv(a)) }
+
+    ============================================================================
+    %%      $ for Expressions
+    ============================================================================
+    %% $ is used to convert an expression to a string. It tries to make the
+    %% expression look readable.
+    ============================================================================
+
+    { case $(constant(r)) = $(r)
+      case $ ~(xx)        = "x"
+      case $(a + b)       = concat["(", $(a), "+", $(b), ")"]
+      case $(a - b)       = concat["(", $(a), "-", $(b), ")"]
+      case $(a * b)       = concat["(", $(a), "*", $(b), ")"]
+      case $(a ^ b)       = concat["(", $(a), "^", $(b), ")"]
+    }
+%Module
