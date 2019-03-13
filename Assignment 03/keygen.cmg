@@ -1,0 +1,46 @@
+%% Name: Matthew Morgan
+%% Date: 2 October 2018
+%% Tabs: 2
+
+Module keygen
+  Import select from "collect/search.cmg".
+  Import prime? from "math/prime.cmg".
+  Import SetRandomSeed, randomRange from "misc/random.cmg".
+  Import "math/modular.cmg".
+  Import stringToNumber from "convert.cmg".
+  
+  { 
+    getRandPrime: Integer -> Integer
+      %: getRandPrime(s) gets a large, random, prime integer.
+  }
+  ----------------------------------------------------------------------------
+  
+  { getRandPrime = (s |-> select prime? [randomRange(256^s,256^(s+1)),...]) }
+  ============================================================================
+
+  Execute
+    Display "Enter a security parameter > ".
+    { s = stringToInteger(readLine()) }
+    Display "Enter a key string > ".
+    { key = readLine() }
+    { seed = $(stringToNumber key) } %% Converts key to a string of numbers
+    
+    SetRandomSeed seed.
+    Displayln "\ns: \"%(s)\", key: \"%(key)\", seed: \"%(seed)\"".
+    
+    {
+      p = getRandPrime s;
+      q = getRandPrime s;
+      n = p*q;
+      squig = (p-1)*(q-1);
+      e = (select (x |-> (gcd(squig,x)==1)) [3,...]);
+      d `modulo` ~(squig) =~ /(e `modulo` squig)
+    }
+    
+    Displayln "(p,q,n): (%(p), %(q), %(n))".
+    Displayln "(squig,e,d): (%(squig), %(e), %(d))".
+    
+    WriteFile "pub.key", "(%(s), %(n), %(e))\n".
+    WriteFile "priv.key", "(%(s), %(n), %(d))\n".
+  .
+%Module

@@ -1,0 +1,63 @@
+%% Name: Matthew Morgan
+%% Date: 2 October 2018
+%% Tabs: 2
+
+Module encipher
+  Import Randomize, randomRange from "misc/random.cmg".
+  Import stringToNumber from "convert.cmg".
+  
+  {
+    newChar: (Integer, Integer) -> Char
+      %: newChar(low,upp) generates a new character with ASCII value between
+      %: 'low' and 'upp.'
+      ;
+    salt: Integer -> [Char]
+      %: salt(n) returns a salt string of length 'n'. For example, salt(2) may
+      %: return "ab" or "zk"
+      ;
+    encipher: (Integer,Integer,Integer) -> Integer
+      %: encipher(k,e,n) enciphers the number 'k' using 'e' and 'n' from a
+      %: public key using the RSA algorithm.
+      ;
+    Progress: () -> ()
+      %: Displays a period to the screen.
+  }
+  ----------------------------------------------------------------------------
+  
+  %% Definitions of newChar, salt, and encipher
+  { newChar = ((low,upp) |-> char(randomRange(low,upp))) }
+  { salt = (n |-> (fdup n (newChar,(97,122)))) }
+  { encipher = ((k,e,n) |-> (k^e) `mod` n) }
+  
+  %% Definition of Progress
+  { Progress(). = Display ".". Flush. }
+
+  %% Definition of encipherFile
+  { encipherFile (s, n, e) (filename) =
+      %% Read the file contents to be enciphered
+      filename ~> fileContents
+        %% Split into pieces, and then print how many pieces there are
+        ~> repeatGet(getUpToN s)
+        %% Add salt to each piece (print the number of pieces first)
+        ~> (l |->
+          ([salt(s)++el | el from l] |
+          Displayln "There's %(length(l)) pieces to encipher.\nProgress: ". ))
+        %% Convert each of the pieces into an integer from a string
+        ~> (l |-> [stringToNumber(el) | el from l])
+        %% Encipher using RSA algorithm (print progress after each bit)
+        ~> (l |-> [encipher(el,e,n) |& Progress. | el from l])
+  }
+  ============================================================================
+
+  %% 'Main' program execution
+  Execute
+    Randomize().
+    
+    { input = head(commandLine); output = head(tail(commandLine)) }
+    { $(s,n,e) =~ fileContents("pub.key") }
+    { L = encipherFile (s,n,e) input }
+    
+    %%Displayln "%(L)".
+    WriteFile output, "%($(L))".
+  .
+%Module

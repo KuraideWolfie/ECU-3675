@@ -1,0 +1,78 @@
+%% Name: Matthew Morgan
+%% Date: 24 September 2018
+%% Tabs: 2
+
+Module convert
+  export
+    {
+      stringToNumber: String -> Integer;
+      numberToString: Integer -> String;
+      TestConvert:    String -> ()
+        %: TestConvert(s) takes a string, 's', and tests whether it will be
+        %: converted back to the same string after converting it to a number of
+        %: base 256, then back to a string.
+    }
+    ============================================================================
+
+  implementation
+    {
+      numList: String -> [Integer]
+        %: numList(s) takes a string, 's', and converts it into a list of ASCII
+        %: character codes representing the string. For example, the string
+        %: "ab" -> [97,98].
+        ;
+      listNum: (Integer, Integer) -> [Char]
+        %: listNum(n,b) takes a number, 'n', and a base, 'b', and converts the
+        %: number to a list of integers with the given base.
+        ;
+      strNum:  (Integer, Integer, Integer) -> Integer
+        %: strNum(b,x,d) takes an integer tuple (b,x,d), and converts the tuple
+        %: into a single integer of base 'b'.
+        %: For example, strNum(10,20,5) = 205, since 20*10 + 5 = 205.
+        ;
+      strNum256: (Integer, Integer) -> Integer
+        %: strNum256(x,d) is a shorter form of strNum(256,x,d), converting a
+        %: tuple of integers to base 256. For example, strNum256(1,3) = 257,
+        %: as 256*1 + 3.
+    }
+    ----------------------------------------------------------------------------
+    
+    %% Definition of numList
+    {
+      case numList([]) = []
+      case numList(h::t) = rank(h)::numList(t)
+    }
+
+    %% Definition of listNum
+    {
+      case listNum(0,?) = []
+      case listNum(n,b) = listNum(n `div` b,b)++[char(n `mod` b)]
+    }
+
+    {
+      strNum = ((b,x,d) |-> b*x + d);
+      strNum256 = ((x,d) |-> strNum (256,x,d));
+      stringToNumber str = (foldLtoR 0 strNum256) (numList(str));
+      numberToString num = listNum(num, 256);
+    }
+    
+    %% Definition of TestConvert
+    { TestConvert(s: String). =
+      { n = stringToNumber s; ns = numberToString n }
+      
+      Displayln "\"%(s)\" -> %(n) -> \"%(ns)\"".
+      
+      If s == ns then
+        Displayln "  The conversion succeeded.".
+      else
+        Displayln "  The conversion failed.".
+      .
+    }
+    ============================================================================
+  
+  %%Execute
+  %%  TestConvert("abcd").
+  %%  TestConvert("Matthew Morgan").
+  %%  TestConvert("Karl Abrahamson, Cinnameg v10").
+  %%.
+%Module

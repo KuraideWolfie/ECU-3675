@@ -1,0 +1,61 @@
+%% Name: Matthew Morgan
+%% Date: 2 October 2018
+%% Tabs: 2
+
+Module decipher
+  Import "collect/string.cmg".
+  Import numberToString from "convert.cmg".
+  
+  {
+    decipher: (Integer, Integer, Integer) -> Integer
+      %: decipher(k,n,d) deciphers a previously-enciphered integer, 'k', using
+      %: the values 'n' and 'd'.
+      ;
+    desalt:   (Integer, String) -> String
+      %: desalt(n,s) desalts the string 's' by removing 'n' characters from
+      %: the beginning. If the number of characters to desalt, 'n', is greater
+      %: than the length of the string, then the empty string is returned.
+      ;
+    Progress: () -> ()
+      %: Displays a period to the screen.
+  }
+  ----------------------------------------------------------------------------
+  
+  %% Definitions of decipher and desalt
+  { decipher = ((k,n,d) |-> (k^d) `mod` n) }
+  {
+    case desalt(?,[]) = []
+    case desalt(0,s) = s
+    case desalt(n,?::t) = desalt(n-1,t) 
+  }
+  
+  %% Definition of Progress
+  { Progress(). = Display ".". Flush. }
+  
+  { decipherFile (s,n,d) (filename) =
+      %% Read the enciphered file contents
+      filename ~> (f |-> x | {$(x: [Integer]) =~ fileContents(f)})
+        %% Decipher each piece, and print progress after
+        %% Print the number of pieces to decipher before
+        ~> (l |->
+          ([decipher(el,n,d) |& Progress. | el from l] |
+          Displayln "There's %(length(l)) pieces to decipher.\nProgress: ".))
+        %% Convert each piece from a number to a string
+        ~> (l |-> [numberToString(el) | el from l])
+        %% De-salt each of the pieces
+        ~> (l |-> [desalt(s,el) | el from l])
+        %% Rebuild the string using a fold
+        ~> (foldLtoR "" (++))
+  }
+  ============================================================================
+
+  %% 'Main' program execution
+  Execute
+    { input = head(commandLine); output = head(tail(commandLine)) }
+    { $(s,n,d) =~ fileContents("priv.key") }
+    { L = decipherFile (s,n,d) input }
+    
+    %%Displayln "\"%(L)\"".
+    WriteFile output, "%(L)".
+  .
+%Module
