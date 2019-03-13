@@ -1,0 +1,111 @@
+Module arithtest
+  Import "arithmetic".
+
+  %% The following functions are provided for convenience.
+  {
+    intToBinary: Integer -> [Integer]
+      %: intToBinary(n) is the binary equivalent of
+      %: nonnegative integer n.
+      ;
+    binaryToInt: [Integer] -> Integer
+      %: binaryToInt(x) is the integer that binary
+      %: list x stands for.
+  }
+
+  {
+	case intToBinary (0)     = []
+    case intToBinary (2*n)   = 0 :: intToBinary(n)
+    case intToBinary (2*n+1) = 1 :: intToBinary(n)
+  }
+
+  {
+    case binaryToInt([])   = 0
+    case binaryToInt(d::x) = 2*binaryToInt(x) + d
+  }
+
+  Example
+    intToBinary(12) = [0,0,1,1];
+    binaryToInt([0,0,1,1]) = 12
+  .
+
+  {
+    TestInc(n: Integer). =
+      {
+        x = intToBinary(n);
+        y = inc(x);
+        z = binaryToInt(y)
+      }
+      Displayln "inc(%(x)) => %(y)\n   %(n) + 1 = %(z)".
+  }
+
+  %% TestSum(a, b) prints the binary and integer values of a, b, and a+b.
+  {
+    TestSum(a: Integer, b: Integer). =
+      {
+        x = intToBinary(a);
+        y = intToBinary(b);
+        z = sum(x, y);
+        c = binaryToInt(z)
+      }
+      Displayln "sum(%(x), %(y)) => %(z)\n   %(a) + %(b) = %(c)".
+  }
+
+  %% TestProduct(a, b) prints the binary and integer values of a, b, and a*b.
+  {
+    TestProduct(a: Integer, b: Integer). =
+      {
+        x = intToBinary(a);
+        y = intToBinary(b);
+        z = product(x, y);
+        c = binaryToInt(z)
+      }
+      Displayln "mlt(%(x), %(y)) => %(z)\n   %(a) * %(b) = %(c)".
+  }
+
+  %% TestPower(a, b) prints the binary and integer values of a, b, and a^b.
+  {
+    TestPower(a: Integer, b: Integer). =
+      {
+        x = intToBinary(a);
+        y = intToBinary(b);
+        z = power(x, y);
+        c = binaryToInt(z)
+      }
+      Displayln "pow(%(x), %(y)) => %(z)\n   %(a) ^ %(b) = %(c)".
+  }
+
+  ======================================================
+  %%               "Main"
+  ======================================================
+
+  Execute
+    For n from [0,...,4] do
+      TestInc(n).
+    .
+
+    %% Test cases from the first assignment
+    TestSum(0, 0).
+    TestProduct(0, 0).
+    TestSum(0, 1).
+    TestProduct(0, 1).
+    TestSum(1, 1).
+    TestProduct(1, 1).
+    TestSum(2, 3).
+    TestProduct(2, 3).
+    TestSum(41, 380).
+    TestSum(380, 41).
+    TestProduct(41, 380).
+    TestSum(63, 4095).
+    TestProduct(63, 4095).
+    TestProduct(4095, 63).
+
+    %% Custom test cases
+    Displayln.
+    TestSum(27, 11).
+    TestProduct(27, 11).
+    TestSum(11, 5).
+    TestProduct(11, 5).
+    TestPower(5, 3).
+    TestPower(2, 7).
+  %Execute
+%Module

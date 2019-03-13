@@ -1,0 +1,98 @@
+%% Name: Matthew Morgan
+%% Date: 5 September 2018
+%% Tabs: 2
+
+Module arithmetic
+  %% Exportation          (Abbrev, global prototypes)
+  export
+    Abbrev Bit = Integer.
+
+    {
+      inc     : [Bit] -> [Bit];
+      sum     : ([Bit], [Bit]) -> [Bit];
+      product : ([Bit], [Bit]) -> [Bit];
+      power   : ([Bit], [Bit]) -> [Bit]
+    }
+
+  %% Implementation       (Import, local prototypes, definitions)
+  implementation
+    Import removeTrailing from "collect/list".
+
+    { normalize = removeTrailing 0 }
+
+    %: incn(x) is the incrementation of x - that is, x+1. The parameter x is a
+    %: list of integers that represent the bits in a binary number. The binary
+    %: representation of x+1 is returned.
+    {
+      %% 0 + 1 = 1
+      case incn []        = [1]
+      %% (2t) + 1 = 2t + 1
+      case incn (0 :: t)  = 1 :: t
+      %% (2t+1) + 1 = 2(t+1)
+      case incn (1 :: t)  = 0 :: incn t
+    }
+
+    %: sumn(x,y) is the sum of x and y. The parameters x and y, as well as the
+    %: result, are lists of integers representing the bits in a binary number.
+    {
+      %% 0 + x = x
+      case sumn([], x) = x
+      case sumn(x, []) = x
+      %% (2x+1) + (2y+1) = 2(x+y+1)
+      case sumn(1::x, 1::y) = 0::sumn(x, incn(y))
+      %% 2x + 2y = 2(x+y)
+      case sumn(0::x, 0::y) = 0::sumn(x, y)
+      %% 2x + (2y+1) = 2x + 2y + 1 = 2(x+y) + 1
+      case sumn(1::x, 0::y) = 1::sumn(x, y)
+      case sumn(0::x, 1::y) = 1::sumn(x, y)
+    }
+
+    %: productn(x,y) is the product of x and y. The parameters x and y, and the
+    %: result, are lists of ints representing the bits in a binary number.
+    {
+      %% 0 * x = 0
+      case productn([], ?) = []
+      case productn(?, []) = []
+      %% x * (2y+1) = 2xy + x
+      case productn(x, 1::y) = sumn(x, productn([0]++x, y))
+      %% x * 2y = 2xy
+      case productn(x, 0::y) = productn([0]++x, y)
+    }
+
+    %: powern(x,y) is x to the y power. The parameters x and y, and the result,
+    %: are lists of ints representing the bits in a binary number.
+    {
+      %% x ^ 0 = 1
+      case powern(?, []) = [1]
+      %% 0 ^ x = 0
+      case powern([], ?) = []
+      %% x ^ 2y = x^y * x^y
+      case powern(x, 0::y) = productn(z, z) | { z = powern(x, y) }
+      %% x ^ 2y+1 = x * x^2y
+      case powern(x, 1::y) = productn(x, powern(x, 0::y))
+    }
+
+    %% Definitions of normalized functions
+    {
+      inc x = normalize(incn x);
+      sum(x,y) = normalize(sumn(x,y));
+      product(x,y) = normalize(productn(x,y));
+      power(x,y) = normalize(powern(x,y))
+    }
+
+    Example
+      inc [1,1,0,1,1,0,0] = [0,0,1,1,1];
+      inc [1] = [0,1];
+      inc [1,0,0] = [0,1];
+      sum([], []) = [];
+      sum([0], [1]) = [1];
+      sum([1], [1]) = [0,1];
+      sum([1,1,0,1], [1,0,1]) = [0,0,0,0,1];
+      product([1], []) = [];
+      product([1,1,0,1,1], [1,1,0,1]) = [1,0,0,1,0,1,0,0,1];
+      product([0,1], [0,0,1]) = [0,0,0,1];
+      power([], [0,0,1]) = [];
+      power([0,0,1], []) = [1];
+      power([1,0,1], [1,1]) = [1,0,1,1,1,1,1]
+    .
+%Module
